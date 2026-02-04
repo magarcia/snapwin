@@ -1,0 +1,21 @@
+# Build artifacts
+snapwin
+*.o
+*.swiftmodule
+
+# Screenshots
+Screenshot-*.png
+
+# macOS
+.DS_Store
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
