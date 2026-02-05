@@ -7,8 +7,7 @@
 ### Homebrew (Recommended)
 
 ```bash
-brew tap magarcia/tap
-brew install snapwin
+brew install magarcia/tap/snapwin
 ```
 
 ### From Source
@@ -82,19 +81,6 @@ To create a new release:
 1. Tag the version: `git tag v1.0.0`
 2. Push the tag: `git push origin v1.0.0`
 3. The GitHub Actions workflow will automatically build and create a release.
-
-### Setting up the Homebrew Tap
-
-To distribute via Homebrew, create a separate repository named `homebrew-tap`:
-
-1. Create a new repo: `magarcia/homebrew-tap`
-2. Copy `Formula/snapwin.rb` to that repo
-3. Update the `sha256` in the formula with the value from the release's `sha256.txt`
-4. Users can then install with:
-   ```bash
-   brew tap magarcia/tap
-   brew install snapwin
-   ```
 
 ## License
 
