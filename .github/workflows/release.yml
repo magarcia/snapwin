@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build snapwin
+        run: |
+          swiftc -O main.swift -o snapwin
+          # Create a tarball for Homebrew
+          tar -czf snapwin-${{ steps.version.outputs.VERSION }}-arm64-macos.tar.gz snapwin
+          # Calculate SHA256 for Homebrew formula
+          shasum -a 256 snapwin-${{ steps.version.outputs.VERSION }}-arm64-macos.tar.gz > sha256.txt
+          cat sha256.txt
+
+      - name: Build for x86_64 (Intel)
+        run: |
+          swiftc -O -target x86_64-apple-macos14 main.swift -o snapwin-x86_64
+          tar -czf snapwin-${{ steps.version.outputs.VERSION }}-x86_64-macos.tar.gz snapwin-x86_64
+          shasum -a 256 snapwin-${{ steps.version.outputs.VERSION }}-x86_64-macos.tar.gz >> sha256.txt
+
+      - name: Create universal binary
+        run: |
+          lipo -create -output snapwin-universal snapwin snapwin-x86_64
+          tar -czf snapwin-${{ steps.version.outputs.VERSION }}-universal-macos.tar.gz snapwin-universal
+          shasum -a 256 snapwin-${{ steps.version.outputs.VERSION }}-universal-macos.tar.gz >> sha256.txt
+          cat sha256.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            snapwin-${{ steps.version.outputs.VERSION }}-arm64-macos.tar.gz
+            snapwin-${{ steps.version.outputs.VERSION }}-x86_64-macos.tar.gz
+            snapwin-${{ steps.version.outputs.VERSION }}-universal-macos.tar.gz
+            sha256.txt
+          generate_release_notes: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
