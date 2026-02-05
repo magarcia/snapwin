@@ -118,16 +118,31 @@ struct SnapWin {
         }
     }
 
+    /// Get the actual backing scale factor for the display containing the window
+    static func getBackingScaleFactor(for window: SCWindow) -> CGFloat {
+        // Find the screen that contains the window (or most of it)
+        for screen in NSScreen.screens {
+            if screen.frame.intersects(window.frame) {
+                return screen.backingScaleFactor
+            }
+        }
+        // Fallback to main screen scale factor, or 2.0 if unavailable
+        return NSScreen.main?.backingScaleFactor ?? 2.0
+    }
+
     @available(macOS 14.0, *)
     static func captureWindow(_ window: SCWindow) async throws -> CGImage {
         // Create the filter for just this window
         let filter = SCContentFilter(desktopIndependentWindow: window)
 
-        // Configure the capture
+        // Get the actual display scale factor (1.0 for standard, 2.0 for Retina, etc.)
+        let scaleFactor = getBackingScaleFactor(for: window)
+
+        // Configure the capture at native resolution
         let config = SCStreamConfiguration()
-        config.width = Int(window.frame.width * 2) // Retina quality (2x)
-        config.height = Int(window.frame.height * 2)
-        config.scalesToFit = true
+        config.width = Int(window.frame.width * scaleFactor)
+        config.height = Int(window.frame.height * scaleFactor)
+        config.scalesToFit = false  // Capture at native resolution without forced scaling
         config.showsCursor = false
         config.captureResolution = .best
 
